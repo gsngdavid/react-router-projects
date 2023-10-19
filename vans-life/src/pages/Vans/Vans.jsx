@@ -3,7 +3,8 @@ import {
     Link,
     useSearchParams,
     useLoaderData,
-    defer
+    defer,
+    Await
 } from "react-router-dom"
 import { getVans } from "../../api"
 
@@ -15,39 +16,43 @@ import { getVans } from "../../api"
  * we could accomplish this task.
  */
 
-export function loader() {
-    return defer({ vans: getVans() })
+export async function loader() {
+    return defer({ vans: await getVans() })
 }
 
 export default function Vans() {
     const [searchParams, setSearchParams] = useSearchParams()
     const [error, setError] = React.useState(null)
-    const vans = useLoaderData()
+    const vansPromise = useLoaderData()
 
     const typeFilter = searchParams.get("type")
 
-    const displayedVans = typeFilter
-        ? vans.filter(van => van.type === typeFilter)
-        : vans
-
-    const vanElements = displayedVans.map(van => (
-        <div key={van.id} className="van-tile">
-            <Link
-                to={van.id}
-                state={{
-                    search: `?${searchParams.toString()}`,
-                    type: typeFilter
-                }}
-            >
-                <img src={van.imageUrl} />
-                <div className="van-info">
-                    <h3>{van.name}</h3>
-                    <p>${van.price}<span>/day</span></p>
+    
+    const vanElements = <Await resolve={vansPromise}>
+        {({ vans }) => {
+            const displayedVans = typeFilter
+                ? vans.filter(van => van.type === typeFilter)
+                : vans
+            return displayedVans.map(van => (
+                <div key={van.id} className="van-tile">
+                    <Link
+                        to={van.id}
+                        state={{
+                            search: `?${searchParams.toString()}`,
+                            type: typeFilter
+                        }}
+                    >
+                        <img src={van.imageUrl} />
+                        <div className="van-info">
+                            <h3>{van.name}</h3>
+                            <p>${van.price}<span>/day</span></p>
+                        </div>
+                        <i className={`van-type ${van.type} selected`}>{van.type}</i>
+                    </Link>
                 </div>
-                <i className={`van-type ${van.type} selected`}>{van.type}</i>
-            </Link>
-        </div>
-    ))
+            ))
+        }}
+    </Await>
 
     function handleFilterChange(key, value) {
         setSearchParams(prevParams => {

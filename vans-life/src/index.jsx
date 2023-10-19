@@ -49,7 +49,7 @@ const router = createBrowserRouter(createRoutesFromElements(
       loader={vanDetailLoader}
     />
 
-    <Route path="host" element={<HostLayout />}>
+    <Route path="host" element={<HostLayout />} errorElement={<Error />}>
       <Route
         index
         element={<Dashboard />}
@@ -102,6 +102,6 @@ function App() {
   )
 }
 
-ReactDOM
-  .createRoot(document.getElementById('root'))
-  .render(<App />);
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+root.render(<App />);
